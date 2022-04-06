@@ -3,22 +3,38 @@ import express, { NextFunction } from 'express';
 import path from 'path';
 import cookieParser from 'cookie-parser';
 import logger from 'morgan';
+import mongoose, {mongo} from 'mongoose';
 
-import indexRouter from './Routes/index';
-import usersRouter from './Routes/users';
+import indexRouter from '../Routes/index';
+import usersRouter from '../Routes/users';
 
 const app = express();
 
+// DB configuration
+import * as DBConfig from './db';
+
+mongoose.connect(DBConfig.RemoteURI);
+
+const db = mongoose.connection; // alias for the mongoose connection
+db.on('error', function()
+{
+  console.error('connection error');
+});
+
+db.once('open', function(){
+  console.log(`Connected to MongoDB at: ${DBConfig.Host}`);
+});
+
 // view engine setup
-app.set('views', path.join(__dirname, 'Views'));
+app.set('views', path.join(__dirname, '../Views'));
 app.set('view engine', 'ejs');
 
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'Client')));
-app.use(express.static(path.join(__dirname, 'node_modules')));
+app.use(express.static(path.join(__dirname, '../Client')));
+app.use(express.static(path.join(__dirname, '../node_modules')));
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
